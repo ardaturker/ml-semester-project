@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# macOS
+.DS_Store
+
+# Large model/data files — train locally, don't commit
+results/agents/*.pkl
+results/agents/*.pt
+
+# Jupyter checkpoints
+.ipynb_checkpoints/

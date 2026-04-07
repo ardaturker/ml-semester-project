@@ -1,0 +1,299 @@
+================================================================================
+  ML RL PROJECT — COMMAND REFERENCE & CRASH COURSE
+  Machine Learning | MSc Supply Chain Digitalisation
+  Last updated: 2026-04-07
+================================================================================
+
+All commands run from inside the project folder:
+  cd ~/Desktop/Workplaces/outputs/school/ml-rl-project
+
+
+────────────────────────────────────────────────────────────────────────────────
+  WHAT THIS PROJECT IS
+────────────────────────────────────────────────────────────────────────────────
+
+A reinforcement learning (RL) system where agents learn to play games through
+trial and error. No dataset — the agent explores an environment, takes actions,
+receives rewards, and improves over time.
+
+  3 ENVIRONMENTS:
+    maze    — 12×12 grid maze, navigate from top-left to bottom-right
+    grid    — 16×16 open grid with random obstacles, find the goal
+    feudal  — Territory control strategy game vs a rule-based enemy
+
+  3 AGENTS (algorithms):
+    qlearning — Tabular Q-Learning (off-policy)
+    sarsa     — SARSA (on-policy, more conservative than Q-Learning)
+    dqn       — Deep Q-Network (neural network, best for complex environments)
+
+  KEY CONCEPT — The RL loop:
+    State → Agent picks action → Environment gives reward + new state → repeat
+    Agent learns: which actions lead to the most reward over time.
+
+
+────────────────────────────────────────────────────────────────────────────────
+  TRAIN.PY — Train agents
+────────────────────────────────────────────────────────────────────────────────
+
+Train all 9 combinations (3 envs × 3 agents):
+  python3 train.py
+
+Train a specific environment + agent:
+  python3 train.py --env maze --agent qlearning
+  python3 train.py --env grid --agent sarsa
+  python3 train.py --env feudal --agent dqn
+
+Control number of episodes:
+  python3 train.py --env maze --agent qlearning --episodes 500
+
+Continue training from a saved checkpoint (resumes epsilon, Q-table, etc.):
+  python3 train.py --env maze --agent qlearning --continue
+  python3 train.py --env maze --agent qlearning --continue --episodes 500
+
+Disable the live plot window:
+  python3 train.py --env maze --agent qlearning --no-plot
+
+WHAT HAPPENS DURING TRAINING:
+  - A live matplotlib window opens showing the reward curve updating in real time
+  - Progress prints every 50 episodes (avg reward + current epsilon)
+  - After training, agent is auto-saved to results/agents/
+  - Reward history is saved to results/{env}_{agent}_rewards.csv
+
+WHAT IS EPSILON (ε)?
+  Controls exploration vs exploitation:
+    ε = 1.0  → agent acts randomly (pure exploration)
+    ε = 0.0  → agent always picks its best known action (pure exploitation)
+  Epsilon decays each episode so the agent explores early and exploits later.
+  --continue resumes from where epsilon left off.
+
+
+────────────────────────────────────────────────────────────────────────────────
+  PLAY.PY — Play or watch
+────────────────────────────────────────────────────────────────────────────────
+
+WATCH the trained agent play (loads saved agent automatically):
+  python3 play.py --env maze --mode watch --agent qlearning
+  python3 play.py --env grid --mode watch --agent sarsa
+  python3 play.py --env feudal --mode watch --agent dqn
+
+  Controls while watching:
+    Any key   — pause / resume
+    R         — reset episode
+    Q         — quit
+
+  Adjust playback speed (default 0.4s per step):
+    python3 play.py --env maze --mode watch --agent qlearning --delay 0.2
+    python3 play.py --env maze --mode watch --agent qlearning --delay 1.0
+
+PLAY yourself (keyboard controls):
+  python3 play.py --env maze --mode human
+  python3 play.py --env grid --mode human
+  python3 play.py --env feudal --mode human
+
+  Maze / Grid controls:
+    W / ↑   — move up
+    S / ↓   — move down
+    A / ←   — move left
+    D / →   — move right
+    R       — reset
+    Q       — quit
+
+  Feudal controls:
+    1 — ATTACK   (take an enemy territory, costs 1 resource, 60% success)
+    2 — FORTIFY  (reduce enemy attack chance this turn, free)
+    3 — RECRUIT  (gain +2 resources)
+    4 — RAID     (50% chance to steal +1 resource)
+    R — reset
+    Q — quit
+
+NOTE: If no saved agent exists for watch mode, a fresh agent is trained (300 ep).
+
+
+────────────────────────────────────────────────────────────────────────────────
+  VISUALIZE.PY — Generate static plots
+────────────────────────────────────────────────────────────────────────────────
+
+Generate all plots from saved training data:
+  python3 visualize.py
+
+OUTPUTS (saved to results/figures/):
+  learning_curves_maze.png    — reward over time, all 3 agents on maze
+  learning_curves_grid.png    — same for grid
+  learning_curves_feudal.png  — same for feudal
+  maze_policy_heatmap.png     — arrows showing Q-Learning's learned policy per cell
+  comparison_bar.png          — final performance bar chart across all 9 combos
+  reward_shaping_grid.png     — effect of different obstacle penalties on learning
+
+
+────────────────────────────────────────────────────────────────────────────────
+  NOTEBOOK — Interactive Jupyter analysis
+────────────────────────────────────────────────────────────────────────────────
+
+Launch the notebook:
+  jupyter notebook notebook.ipynb
+
+SECTIONS:
+  1. Setup          — imports and environment
+  2. Environments   — demo each env with render()
+  3. Algorithms     — Q-Learning, SARSA, DQN explained with code
+  4. Training       — train all 9 combos inline (takes ~2-5 min)
+  5. Results        — learning curves, heatmap, comparison bar, reward shaping
+  6. Analysis       — Q-Learning vs SARSA vs DQN discussion
+  7. Conclusion     — key lessons + supply chain connection
+
+  Section 5 (Interactive):
+    AgentAnimator('maze').display()   — watch trained agent on colored grid
+                                        buttons: Step / ▶ Play / ⏹ Stop / ↺ Reset
+                                        speed slider: 0.05–1.5s per step
+
+    HumanPlayer('maze').display()     — play with D-pad buttons in notebook
+                                        Feudal: ⚔ Attack / 🛡 Fortify / 🏹 Recruit / 💰 Raid
+
+  Change env: replace 'maze' with 'grid' or 'feudal' in either class
+
+
+────────────────────────────────────────────────────────────────────────────────
+  SAVED FILES — Where data lives
+────────────────────────────────────────────────────────────────────────────────
+
+  results/agents/
+    maze_qlearning.pkl     — saved Q-table + epsilon for Q-Learning on maze
+    maze_sarsa.pkl         — same for SARSA
+    maze_dqn.pt            — saved neural network weights for DQN
+    grid_qlearning.pkl     — (same pattern for grid and feudal)
+    ...
+
+  results/
+    maze_qlearning_rewards.csv   — full episode reward history
+    grid_sarsa_rewards.csv       — (one CSV per env × agent combo)
+    ...
+
+  results/figures/
+    *.png                        — all generated plots
+
+
+────────────────────────────────────────────────────────────────────────────────
+  CONFIG.PY — Tune hyperparameters
+────────────────────────────────────────────────────────────────────────────────
+
+Edit config.py to change these settings:
+
+  EPISODES = 1000             — total episodes per training run
+  MAX_STEPS_PER_EPISODE = 500 — max steps before episode ends (prevents infinite loops)
+
+  ALPHA = 0.1                 — learning rate (how fast Q-values update)
+  GAMMA = 0.95                — discount factor (how much future rewards matter)
+  EPSILON_START = 1.0         — starting exploration rate
+  EPSILON_END = 0.01          — minimum exploration rate
+  EPSILON_DECAY = 0.997       — how fast epsilon shrinks each episode
+
+  BATCH_SIZE = 64             — DQN: samples per training batch
+  REPLAY_BUFFER_SIZE = 20000  — DQN: how many transitions to store
+  TARGET_UPDATE_FREQ = 200    — DQN: how often to sync target network
+  DQN_LR = 0.001              — DQN: Adam optimizer learning rate
+  DQN_HIDDEN_SIZE = 128       — DQN: neurons per hidden layer
+
+  MAZE_SIZE = 12              — maze grid size (12×12 = 144 states)
+  GRID_SIZE = 16              — grid size (16×16 = 256 states)
+  GRID_OBSTACLE_DENSITY = 0.15 — fraction of grid cells that are obstacles
+  FEUDAL_MAX_TURNS = 50       — max turns before feudal episode ends
+
+  PLOT_UPDATE_EVERY = 10      — how often the live plot refreshes (episodes)
+
+
+────────────────────────────────────────────────────────────────────────────────
+  ALGORITHMS EXPLAINED (quick reference)
+────────────────────────────────────────────────────────────────────────────────
+
+  Q-LEARNING (qlearning)
+    Type: Off-policy, tabular
+    Update: Q(s,a) ← Q(s,a) + α [r + γ max Q(s',a') - Q(s,a)]
+    Key:  Updates toward the BEST possible next action (even if not taken)
+    Good for: Simple, deterministic environments (maze)
+    Weakness: Overestimates Q-values in noisy environments
+
+  SARSA (sarsa)
+    Type: On-policy, tabular
+    Update: Q(s,a) ← Q(s,a) + α [r + γ Q(s',a') - Q(s,a)]   where a' is ACTUAL next action
+    Key:  More conservative — accounts for its own exploration mistakes
+    Good for: Stochastic/risky environments (feudal)
+    Difference from Q-Learning: uses Q(s', actual_next_action) not Q(s', best_action)
+
+  DQN (dqn)
+    Type: Off-policy, neural network
+    Key:  Neural network replaces the Q-table — scales to large state spaces
+    Tricks: Experience replay (random batches) + target network (stable training)
+    Good for: Complex environments where tabular methods hit limits
+    Architecture: Input(one-hot state) → Linear(128) → ReLU → Linear(128) → ReLU → Linear(actions)
+
+
+────────────────────────────────────────────────────────────────────────────────
+  REWARD STRUCTURES
+────────────────────────────────────────────────────────────────────────────────
+
+  MAZE / GRID
+    +100   reach the goal
+    -1     each step (encourages shorter paths)
+    -5     hit a wall or go out of bounds
+    -10    hit an obstacle (grid only)
+
+  FEUDAL
+    +20    capture a territory
+    -20    lose a territory
+    +100   win (control all 8 territories)
+    -100   lose (0 territories remaining)
+    +1     survive each turn
+    -50    run out of resources while attacking
+
+
+────────────────────────────────────────────────────────────────────────────────
+  COMMON WORKFLOWS
+────────────────────────────────────────────────────────────────────────────────
+
+  First time — train everything and see all plots:
+    python3 train.py --no-plot
+    python3 visualize.py
+
+  Train one agent with live graph, then watch it play:
+    python3 train.py --env maze --agent qlearning
+    python3 play.py --env maze --mode watch --agent qlearning
+
+  Keep training an agent across multiple sessions:
+    python3 train.py --env maze --agent dqn --episodes 500          (session 1)
+    python3 train.py --env maze --agent dqn --episodes 500 --continue  (session 2)
+    python3 train.py --env maze --agent dqn --episodes 500 --continue  (session 3)
+
+  Compare all agents on one environment:
+    python3 train.py --env feudal --no-plot
+    python3 visualize.py
+    (see results/figures/learning_curves_feudal.png)
+
+  Play all 3 environments yourself:
+    python3 play.py --env maze --mode human
+    python3 play.py --env grid --mode human
+    python3 play.py --env feudal --mode human
+
+
+────────────────────────────────────────────────────────────────────────────────
+  PROJECT FILES
+────────────────────────────────────────────────────────────────────────────────
+
+  train.py                      — training script (this is the main entry point)
+  play.py                       — interactive play and agent watching
+  visualize.py                  — generate static PNG plots
+  config.py                     — all hyperparameters
+  COMMANDS.txt                  — this file (updated when project changes)
+  notebook.ipynb                — full analysis notebook
+
+  environments/
+    base_env.py                 — abstract interface all envs follow
+    maze_env.py                 — maze environment (12×12)
+    grid_env.py                 — grid navigation environment (16×16)
+    feudal_env.py               — feudal warfare environment
+
+  agents/
+    q_learning.py               — tabular Q-Learning agent
+    sarsa.py                    — SARSA agent
+    dqn.py                      — Deep Q-Network agent (PyTorch)
+
+================================================================================
